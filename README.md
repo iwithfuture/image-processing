@@ -2,6 +2,8 @@
 
 批量图片处理工具，可在浏览器中直接选择图片、处理并下载，也保留本地 `input` / `output` 文件夹批处理方式。
 
+在线地址：https://image-auto-processor.vercel.app
+
 ## 在线网页功能
 
 - 选择 `.jpg`、`.jpeg`、`.png` 图片。
