@@ -40,7 +40,7 @@ async function processImage(fileName) {
       background: { r: 255, g: 255, b: 255, alpha: 1 },
     })
     .flatten({ background: { r: 255, g: 255, b: 255 } })
-    .jpeg({ quality: 85 })
+    .jpeg({ quality: 95 })
     .toFile(outputPath);
 
   return outputPath;

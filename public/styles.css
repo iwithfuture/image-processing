@@ -121,9 +121,9 @@ h2 {
   color: #172033;
 }
 
-.status-band {
+.status-band,
+.path-band {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   overflow: hidden;
   border: 1px solid #dde5f0;
@@ -131,7 +131,17 @@ h2 {
   background: #dde5f0;
 }
 
-.status-band > div {
+.status-band {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.path-band {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 12px;
+}
+
+.status-band > div,
+.path-band > div {
   display: grid;
   gap: 6px;
   min-height: 78px;
@@ -144,8 +154,16 @@ h2 {
   font-size: 13px;
 }
 
-.status-band strong {
+.status-band strong,
+.path-band strong {
   font-size: 21px;
+}
+
+.path-band strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workspace {
@@ -265,7 +283,8 @@ h2 {
     flex: 1 1 140px;
   }
 
-  .status-band {
+  .status-band,
+  .path-band {
     grid-template-columns: 1fr;
   }
 

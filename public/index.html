@@ -14,10 +14,14 @@
           <h1>批量图片处理工具</h1>
         </div>
         <div class="actions">
-          <label class="button secondary" for="fileInput">
+          <label class="button secondary" for="folderInput">
             <span aria-hidden="true">+</span>
-            选择图片
+            选择输入文件夹
           </label>
+          <button id="chooseOutputButton" class="button secondary" type="button">
+            <span aria-hidden="true">□</span>
+            选择输出文件夹
+          </button>
           <button id="processButton" class="button primary" type="button" disabled>
             <span aria-hidden="true">▶</span>
             开始处理
@@ -27,7 +31,7 @@
             下载全部
           </button>
         </div>
-        <input id="fileInput" type="file" accept="image/jpeg,image/png" multiple />
+        <input id="folderInput" type="file" accept="image/jpeg,image/png" webkitdirectory directory multiple />
       </section>
 
       <section class="status-band" aria-live="polite">
@@ -41,7 +45,18 @@
         </div>
         <div>
           <span class="label">质量</span>
-          <strong>85</strong>
+          <strong>95</strong>
+        </div>
+      </section>
+
+      <section class="path-band">
+        <div>
+          <span class="label">输入方式</span>
+          <strong>整个文件夹，可包含子文件夹</strong>
+        </div>
+        <div>
+          <span class="label">输出位置</span>
+          <strong id="outputFolderName">尚未选择输出文件夹</strong>
         </div>
       </section>
 
@@ -59,7 +74,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>处理结果</h2>
-            <span id="statusText" class="status-text">等待图片</span>
+            <span id="statusText" class="status-text">等待文件夹</span>
           </div>
           <div id="resultList" class="result-list"></div>
         </div>
