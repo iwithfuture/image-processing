@@ -1,0 +1,275 @@
+:root {
+  color-scheme: light;
+  font-family:
+    "Microsoft YaHei",
+    "PingFang SC",
+    "Segoe UI",
+    sans-serif;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+#fileInput {
+  position: fixed;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0 22px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #5d6d84;
+  font-size: 13px;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.button,
+.icon-button,
+.download-link {
+  border: 1px solid #cdd6e4;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.button:hover,
+.icon-button:hover,
+.download-link:hover {
+  border-color: #7b8da8;
+  box-shadow: 0 8px 22px rgb(28 43 69 / 10%);
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.primary {
+  border-color: #1f6feb;
+  background: #1f6feb;
+  color: #fff;
+}
+
+.secondary {
+  background: #fff;
+  color: #172033;
+}
+
+.status-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid #dde5f0;
+  border-radius: 8px;
+  background: #dde5f0;
+}
+
+.status-band > div {
+  display: grid;
+  gap: 6px;
+  min-height: 78px;
+  padding: 16px;
+  background: #fff;
+}
+
+.label {
+  color: #66748a;
+  font-size: 13px;
+}
+
+.status-band strong {
+  font-size: 21px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.panel {
+  min-height: 430px;
+  border: 1px solid #dde5f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  padding: 0 16px;
+  border-bottom: 1px solid #e5ebf3;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  background: #f8fafc;
+  color: #30415c;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.status-text {
+  color: #5f6f89;
+  font-size: 14px;
+}
+
+.image-list,
+.result-list {
+  margin: 0;
+  padding: 14px;
+}
+
+.image-list {
+  list-style: none;
+}
+
+.image-list li,
+.result-item,
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  border-bottom: 1px solid #eef2f7;
+  color: #25344d;
+}
+
+.image-list li:last-child,
+.result-item:last-child {
+  border-bottom: 0;
+}
+
+.file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-meta {
+  flex: 0 0 auto;
+  color: #66748a;
+  font-size: 13px;
+}
+
+.download-link {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  background: #e8f7ee;
+  color: #17663a;
+  font-size: 13px;
+}
+
+.empty-state {
+  justify-content: center;
+  min-height: 220px;
+  border-bottom: 0;
+  color: #69788f;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100% - 20px, 1180px);
+    padding-top: 14px;
+  }
+
+  .toolbar,
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    display: grid;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .button {
+    flex: 1 1 140px;
+  }
+
+  .status-band {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace {
+    display: grid;
+  }
+}

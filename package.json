@@ -1,0 +1,13 @@
+{
+  "name": "image-auto-processor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Batch process images to centered 1000x1000 JPG files.",
+  "scripts": {
+    "gui": "node server.js",
+    "process": "node process-images.js"
+  },
+  "dependencies": {
+    "sharp": "^0.34.2"
+  }
+}

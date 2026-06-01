@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>批量图片处理工具</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="toolbar" aria-label="图片处理工具">
+        <div>
+          <p class="eyebrow">Image Processing</p>
+          <h1>批量图片处理工具</h1>
+        </div>
+        <div class="actions">
+          <label class="button secondary" for="fileInput">
+            <span aria-hidden="true">+</span>
+            选择图片
+          </label>
+          <button id="processButton" class="button primary" type="button" disabled>
+            <span aria-hidden="true">▶</span>
+            开始处理
+          </button>
+          <button id="downloadAllButton" class="button secondary" type="button" disabled>
+            <span aria-hidden="true">↓</span>
+            下载全部
+          </button>
+        </div>
+        <input id="fileInput" type="file" accept="image/jpeg,image/png" multiple />
+      </section>
+
+      <section class="status-band" aria-live="polite">
+        <div>
+          <span class="label">已选择图片</span>
+          <strong id="imageCount">0</strong>
+        </div>
+        <div>
+          <span class="label">输出尺寸</span>
+          <strong>1000 × 1000 JPG</strong>
+        </div>
+        <div>
+          <span class="label">质量</span>
+          <strong>85</strong>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>待处理图片</h2>
+            <button id="clearButton" class="icon-button" type="button" aria-label="清空列表" title="清空列表">
+              ×
+            </button>
+          </div>
+          <ul id="imageList" class="image-list"></ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>处理结果</h2>
+            <span id="statusText" class="status-text">等待图片</span>
+          </div>
+          <div id="resultList" class="result-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
