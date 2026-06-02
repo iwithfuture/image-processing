@@ -122,6 +122,7 @@ h2 {
 }
 
 .mode-panel,
+.option-panel,
 .status-band,
 .path-band {
   display: grid;
@@ -130,6 +131,10 @@ h2 {
   border: 1px solid #dde5f0;
   border-radius: 8px;
   background: #dde5f0;
+}
+
+.option-panel {
+  margin-top: 12px;
 }
 
 .mode-panel {
@@ -148,6 +153,7 @@ h2 {
 }
 
 .mode-panel > div,
+.option-panel > div,
 .status-band > div,
 .path-band > div {
   display: grid;
@@ -155,6 +161,66 @@ h2 {
   min-height: 78px;
   padding: 16px;
   background: #fff;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 16px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.toggle-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-visual {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: #cdd6e4;
+  transition: background 120ms ease;
+}
+
+.toggle-visual::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(23 32 51 / 20%);
+  content: "";
+  transition: transform 120ms ease;
+}
+
+.toggle-row input:checked + .toggle-visual {
+  background: #1f6feb;
+}
+
+.toggle-row input:checked + .toggle-visual::after {
+  transform: translateX(20px);
+}
+
+.toggle-row strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 17px;
+}
+
+.toggle-row small {
+  display: block;
+  color: #66748a;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .label {
@@ -329,6 +395,7 @@ h2 {
   }
 
   .mode-panel,
+  .option-panel,
   .status-band,
   .path-band {
     grid-template-columns: 1fr;

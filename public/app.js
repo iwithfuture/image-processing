@@ -26,11 +26,13 @@ const statusText = document.querySelector("#statusText");
 const outputFolderName = document.querySelector("#outputFolderName");
 const modeSummary = document.querySelector("#modeSummary");
 const sizeSummary = document.querySelector("#sizeSummary");
+const formatSummary = document.querySelector("#formatSummary");
 const chooseOutputButton = document.querySelector("#chooseOutputButton");
 const processButton = document.querySelector("#processButton");
 const downloadAllButton = document.querySelector("#downloadAllButton");
 const clearButton = document.querySelector("#clearButton");
 const sizeModeInputs = document.querySelectorAll('input[name="sizeMode"]');
+const removeBackgroundInput = document.querySelector("#removeBackgroundInput");
 
 let selectedFiles = [];
 let processedImages = [];
@@ -47,7 +49,10 @@ function getSizeMode() {
 function updateModeText() {
   const mode = sizeModes[getSizeMode()] || sizeModes.square;
   modeSummary.textContent = mode.summary;
-  sizeSummary.textContent = mode.size;
+  sizeSummary.textContent = removeBackgroundInput.checked
+    ? mode.size.replace("JPG", "PNG")
+    : mode.size;
+  formatSummary.textContent = removeBackgroundInput.checked ? "PNG 透明" : "JPG 95";
 }
 
 function getRelativePath(file) {
@@ -67,7 +72,8 @@ function getOutputPath(file) {
   const dotIndex = fileName.lastIndexOf(".");
   const baseName = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName;
 
-  return `${folder}${baseName}.jpg`;
+  const extension = removeBackgroundInput.checked ? "png" : "jpg";
+  return `${folder}${baseName}.${extension}`;
 }
 
 function formatFileSize(bytes) {
@@ -169,6 +175,8 @@ function loadImage(file) {
 }
 
 function canvasToBlob(canvas) {
+  const mimeType = removeBackgroundInput.checked ? "image/png" : "image/jpeg";
+
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -179,19 +187,99 @@ function canvasToBlob(canvas) {
 
         reject(new Error("图片导出失败"));
       },
-      "image/jpeg",
+      mimeType,
       jpegQuality,
     );
   });
 }
 
-function drawSquareImage(context, image) {
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, squareSize, squareSize);
+function getAverageBackgroundColor(imageData, width, height) {
+  const data = imageData.data;
+  const sampleSize = Math.max(8, Math.round(Math.min(width, height) * 0.04));
+  const samples = [];
+  const areas = [
+    [0, 0],
+    [width - sampleSize, 0],
+    [0, height - sampleSize],
+    [width - sampleSize, height - sampleSize],
+  ];
 
-  const scale = Math.min(squareSize / image.naturalWidth, squareSize / image.naturalHeight);
-  const width = Math.round(image.naturalWidth * scale);
-  const height = Math.round(image.naturalHeight * scale);
+  for (const [startX, startY] of areas) {
+    for (let y = startY; y < startY + sampleSize; y += 1) {
+      for (let x = startX; x < startX + sampleSize; x += 1) {
+        const index = (y * width + x) * 4;
+        if (data[index + 3] > 0) {
+          samples.push([data[index], data[index + 1], data[index + 2]]);
+        }
+      }
+    }
+  }
+
+  if (samples.length === 0) {
+    return [255, 255, 255];
+  }
+
+  return samples.reduce(
+    (total, sample) => [
+      total[0] + sample[0] / samples.length,
+      total[1] + sample[1] / samples.length,
+      total[2] + sample[2] / samples.length,
+    ],
+    [0, 0, 0],
+  );
+}
+
+function removeBackgroundFromCanvas(canvas) {
+  const context = canvas.getContext("2d");
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const backgroundColor = getAverageBackgroundColor(imageData, canvas.width, canvas.height);
+  const threshold = 42;
+  const feather = 36;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const redDistance = data[index] - backgroundColor[0];
+    const greenDistance = data[index + 1] - backgroundColor[1];
+    const blueDistance = data[index + 2] - backgroundColor[2];
+    const distance = Math.sqrt(
+      redDistance * redDistance + greenDistance * greenDistance + blueDistance * blueDistance,
+    );
+
+    if (distance <= threshold) {
+      data[index + 3] = 0;
+    } else if (distance <= threshold + feather) {
+      const opacity = (distance - threshold) / feather;
+      data[index + 3] = Math.round(data[index + 3] * opacity);
+    }
+  }
+
+  context.putImageData(imageData, 0, 0);
+}
+
+function createPreparedSourceCanvas(image) {
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0);
+
+  if (removeBackgroundInput.checked) {
+    removeBackgroundFromCanvas(canvas);
+  }
+
+  return canvas;
+}
+
+function drawSquareImage(context, image) {
+  if (!removeBackgroundInput.checked) {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, squareSize, squareSize);
+  }
+
+  const scale = Math.min(squareSize / image.width, squareSize / image.height);
+  const width = Math.round(image.width * scale);
+  const height = Math.round(image.height * scale);
   const x = Math.round((squareSize - width) / 2);
   const y = Math.round((squareSize - height) / 2);
 
@@ -200,13 +288,15 @@ function drawSquareImage(context, image) {
 }
 
 function drawWidthBasedImage(context, image, canvas, targetWidth) {
-  const scale = targetWidth / image.naturalWidth;
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const scale = targetWidth / image.width;
+  const height = Math.max(1, Math.round(image.height * scale));
 
   canvas.width = targetWidth;
   canvas.height = height;
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, targetWidth, height);
+  if (!removeBackgroundInput.checked) {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, targetWidth, height);
+  }
   context.drawImage(image, 0, 0, targetWidth, height);
 
   return { width: targetWidth, height };
@@ -214,6 +304,7 @@ function drawWidthBasedImage(context, image, canvas, targetWidth) {
 
 async function processFile(file) {
   const image = await loadImage(file);
+  const preparedImage = createPreparedSourceCanvas(image);
   const canvas = document.createElement("canvas");
   canvas.width = squareSize;
   canvas.height = squareSize;
@@ -224,8 +315,8 @@ async function processFile(file) {
 
   const mode = sizeModes[getSizeMode()] || sizeModes.square;
   const dimensions = mode.width
-    ? drawWidthBasedImage(context, image, canvas, mode.width)
-    : drawSquareImage(context, image);
+    ? drawWidthBasedImage(context, preparedImage, canvas, mode.width)
+    : drawSquareImage(context, preparedImage);
 
   const blob = await canvasToBlob(canvas);
   const outputPath = getOutputPath(file);
@@ -364,6 +455,16 @@ for (const input of sizeModeInputs) {
     }
   });
 }
+
+removeBackgroundInput.addEventListener("change", () => {
+  revokeProcessedUrls();
+  processedImages = [];
+  updateModeText();
+  renderResults();
+  if (selectedFiles.length > 0) {
+    setStatus("去背设置已更改，请重新开始处理");
+  }
+});
 
 chooseOutputButton.addEventListener("click", chooseOutputFolder);
 processButton.addEventListener("click", processImages);
