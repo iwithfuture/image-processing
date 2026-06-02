@@ -1,7 +1,22 @@
 const squareSize = 1000;
-const wideWidth = 1920;
 const jpegQuality = 0.95;
 const supportedExtensions = new Set([".jpg", ".jpeg", ".png"]);
+const sizeModes = {
+  square: {
+    summary: "1000 × 1000 白底居中",
+    size: "1000 × 1000 JPG",
+  },
+  wide1920: {
+    summary: "宽度 1920，高度按比例缩放",
+    size: "1920 × 自动 JPG",
+    width: 1920,
+  },
+  wide750: {
+    summary: "宽度 750，高度按比例缩放",
+    size: "750 × 自动 JPG",
+    width: 750,
+  },
+};
 
 const folderInput = document.querySelector("#folderInput");
 const imageCount = document.querySelector("#imageCount");
@@ -30,14 +45,9 @@ function getSizeMode() {
 }
 
 function updateModeText() {
-  if (getSizeMode() === "wide1920") {
-    modeSummary.textContent = "宽度 1920，高度按比例缩放";
-    sizeSummary.textContent = "1920 × 自动 JPG";
-    return;
-  }
-
-  modeSummary.textContent = "1000 × 1000 白底居中";
-  sizeSummary.textContent = "1000 × 1000 JPG";
+  const mode = sizeModes[getSizeMode()] || sizeModes.square;
+  modeSummary.textContent = mode.summary;
+  sizeSummary.textContent = mode.size;
 }
 
 function getRelativePath(file) {
@@ -189,17 +199,17 @@ function drawSquareImage(context, image) {
   return { width: squareSize, height: squareSize };
 }
 
-function drawWideImage(context, image, canvas) {
-  const scale = wideWidth / image.naturalWidth;
+function drawWidthBasedImage(context, image, canvas, targetWidth) {
+  const scale = targetWidth / image.naturalWidth;
   const height = Math.max(1, Math.round(image.naturalHeight * scale));
 
-  canvas.width = wideWidth;
+  canvas.width = targetWidth;
   canvas.height = height;
   context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, wideWidth, height);
-  context.drawImage(image, 0, 0, wideWidth, height);
+  context.fillRect(0, 0, targetWidth, height);
+  context.drawImage(image, 0, 0, targetWidth, height);
 
-  return { width: wideWidth, height };
+  return { width: targetWidth, height };
 }
 
 async function processFile(file) {
@@ -212,10 +222,10 @@ async function processFile(file) {
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
 
-  const dimensions =
-    getSizeMode() === "wide1920"
-      ? drawWideImage(context, image, canvas)
-      : drawSquareImage(context, image);
+  const mode = sizeModes[getSizeMode()] || sizeModes.square;
+  const dimensions = mode.width
+    ? drawWidthBasedImage(context, image, canvas, mode.width)
+    : drawSquareImage(context, image);
 
   const blob = await canvasToBlob(canvas);
   const outputPath = getOutputPath(file);
