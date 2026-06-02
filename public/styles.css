@@ -23,7 +23,7 @@ input {
   font: inherit;
 }
 
-#fileInput {
+#folderInput {
   position: fixed;
   inline-size: 1px;
   block-size: 1px;
@@ -121,6 +121,7 @@ h2 {
   color: #172033;
 }
 
+.mode-panel,
 .status-band,
 .path-band {
   display: grid;
@@ -129,6 +130,12 @@ h2 {
   border: 1px solid #dde5f0;
   border-radius: 8px;
   background: #dde5f0;
+}
+
+.mode-panel {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  margin-bottom: 12px;
 }
 
 .status-band {
@@ -140,6 +147,7 @@ h2 {
   margin-top: 12px;
 }
 
+.mode-panel > div,
 .status-band > div,
 .path-band > div {
   display: grid;
@@ -154,9 +162,46 @@ h2 {
   font-size: 13px;
 }
 
+.mode-panel strong,
 .status-band strong,
 .path-band strong {
   font-size: 21px;
+}
+
+.segmented-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.segmented-control label {
+  position: relative;
+}
+
+.segmented-control input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented-control span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid #cdd6e4;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: #30415c;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segmented-control input:checked + span {
+  border-color: #1f6feb;
+  background: #eaf2ff;
+  color: #1759c8;
 }
 
 .path-band strong {
@@ -283,9 +328,15 @@ h2 {
     flex: 1 1 140px;
   }
 
+  .mode-panel,
   .status-band,
   .path-band {
     grid-template-columns: 1fr;
+  }
+
+  .segmented-control {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .workspace {

@@ -1,4 +1,5 @@
-const canvasSize = 1000;
+const squareSize = 1000;
+const wideWidth = 1920;
 const jpegQuality = 0.95;
 const supportedExtensions = new Set([".jpg", ".jpeg", ".png"]);
 
@@ -8,10 +9,13 @@ const imageList = document.querySelector("#imageList");
 const resultList = document.querySelector("#resultList");
 const statusText = document.querySelector("#statusText");
 const outputFolderName = document.querySelector("#outputFolderName");
+const modeSummary = document.querySelector("#modeSummary");
+const sizeSummary = document.querySelector("#sizeSummary");
 const chooseOutputButton = document.querySelector("#chooseOutputButton");
 const processButton = document.querySelector("#processButton");
 const downloadAllButton = document.querySelector("#downloadAllButton");
 const clearButton = document.querySelector("#clearButton");
+const sizeModeInputs = document.querySelectorAll('input[name="sizeMode"]');
 
 let selectedFiles = [];
 let processedImages = [];
@@ -19,6 +23,21 @@ let outputDirectoryHandle = null;
 
 function setStatus(text) {
   statusText.textContent = text;
+}
+
+function getSizeMode() {
+  return document.querySelector('input[name="sizeMode"]:checked').value;
+}
+
+function updateModeText() {
+  if (getSizeMode() === "wide1920") {
+    modeSummary.textContent = "宽度 1920，高度按比例缩放";
+    sizeSummary.textContent = "1920 × 自动 JPG";
+    return;
+  }
+
+  modeSummary.textContent = "1000 × 1000 白底居中";
+  sizeSummary.textContent = "1000 × 1000 JPG";
 }
 
 function getRelativePath(file) {
@@ -104,8 +123,8 @@ function renderResults() {
 
     const name = document.createElement("span");
     name.className = "file-name";
-    name.title = image.outputPath;
-    name.textContent = image.outputPath;
+    name.title = `${image.outputPath} (${image.width} × ${image.height})`;
+    name.textContent = `${image.outputPath} (${image.width} × ${image.height})`;
 
     const link = document.createElement("a");
     link.className = "download-link";
@@ -156,25 +175,47 @@ function canvasToBlob(canvas) {
   });
 }
 
+function drawSquareImage(context, image) {
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, squareSize, squareSize);
+
+  const scale = Math.min(squareSize / image.naturalWidth, squareSize / image.naturalHeight);
+  const width = Math.round(image.naturalWidth * scale);
+  const height = Math.round(image.naturalHeight * scale);
+  const x = Math.round((squareSize - width) / 2);
+  const y = Math.round((squareSize - height) / 2);
+
+  context.drawImage(image, x, y, width, height);
+  return { width: squareSize, height: squareSize };
+}
+
+function drawWideImage(context, image, canvas) {
+  const scale = wideWidth / image.naturalWidth;
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  canvas.width = wideWidth;
+  canvas.height = height;
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, wideWidth, height);
+  context.drawImage(image, 0, 0, wideWidth, height);
+
+  return { width: wideWidth, height };
+}
+
 async function processFile(file) {
   const image = await loadImage(file);
   const canvas = document.createElement("canvas");
-  canvas.width = canvasSize;
-  canvas.height = canvasSize;
+  canvas.width = squareSize;
+  canvas.height = squareSize;
 
   const context = canvas.getContext("2d");
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, canvasSize, canvasSize);
-
-  const scale = Math.min(canvasSize / image.naturalWidth, canvasSize / image.naturalHeight);
-  const width = Math.round(image.naturalWidth * scale);
-  const height = Math.round(image.naturalHeight * scale);
-  const x = Math.round((canvasSize - width) / 2);
-  const y = Math.round((canvasSize - height) / 2);
-
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
-  context.drawImage(image, x, y, width, height);
+
+  const dimensions =
+    getSizeMode() === "wide1920"
+      ? drawWideImage(context, image, canvas)
+      : drawSquareImage(context, image);
 
   const blob = await canvasToBlob(canvas);
   const outputPath = getOutputPath(file);
@@ -184,6 +225,8 @@ async function processFile(file) {
     inputPath: getRelativePath(file),
     outputPath,
     url: URL.createObjectURL(blob),
+    width: dimensions.width,
+    height: dimensions.height,
   };
 }
 
@@ -300,10 +343,23 @@ folderInput.addEventListener("change", () => {
   renderResults();
 });
 
+for (const input of sizeModeInputs) {
+  input.addEventListener("change", () => {
+    revokeProcessedUrls();
+    processedImages = [];
+    updateModeText();
+    renderResults();
+    if (selectedFiles.length > 0) {
+      setStatus("尺寸模式已更改，请重新开始处理");
+    }
+  });
+}
+
 chooseOutputButton.addEventListener("click", chooseOutputFolder);
 processButton.addEventListener("click", processImages);
 downloadAllButton.addEventListener("click", downloadAll);
 clearButton.addEventListener("click", clearAll);
 
+updateModeText();
 renderFiles();
 renderResults();
