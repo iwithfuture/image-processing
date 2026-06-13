@@ -33,6 +33,11 @@ const downloadAllButton = document.querySelector("#downloadAllButton");
 const clearButton = document.querySelector("#clearButton");
 const sizeModeInputs = document.querySelectorAll('input[name="sizeMode"]');
 const removeBackgroundInput = document.querySelector("#removeBackgroundInput");
+const sourceTextInput = document.querySelector("#sourceTextInput");
+const translatedTextOutput = document.querySelector("#translatedTextOutput");
+const targetLanguageSelect = document.querySelector("#targetLanguageSelect");
+const translateButton = document.querySelector("#translateButton");
+const translationStatus = document.querySelector("#translationStatus");
 
 let selectedFiles = [];
 let processedImages = [];
@@ -470,6 +475,52 @@ chooseOutputButton.addEventListener("click", chooseOutputFolder);
 processButton.addEventListener("click", processImages);
 downloadAllButton.addEventListener("click", downloadAll);
 clearButton.addEventListener("click", clearAll);
+
+async function translateText() {
+  const text = sourceTextInput.value.trim();
+
+  if (!text) {
+    translationStatus.textContent = "请先输入文字";
+    translatedTextOutput.value = "";
+    return;
+  }
+
+  translateButton.disabled = true;
+  translationStatus.textContent = "正在翻译...";
+  translatedTextOutput.value = "";
+
+  try {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        targetLanguage: targetLanguageSelect.value,
+      }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "翻译失败");
+    }
+
+    translatedTextOutput.value = data.translatedText;
+    translationStatus.textContent = `翻译结果`;
+  } catch (error) {
+    translationStatus.textContent = error.message;
+  } finally {
+    translateButton.disabled = false;
+  }
+}
+
+translateButton.addEventListener("click", translateText);
+sourceTextInput.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    translateText();
+  }
+});
 
 updateModeText();
 renderFiles();

@@ -19,7 +19,9 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -371,6 +373,76 @@ h2 {
   text-align: center;
 }
 
+.translator-section {
+  margin-top: 22px;
+  border: 1px solid #dde5f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.translator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 74px;
+  padding: 16px;
+  border-bottom: 1px solid #e5ebf3;
+}
+
+.translator-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.select-control {
+  min-height: 42px;
+  min-width: 180px;
+  border: 1px solid #cdd6e4;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: #172033;
+}
+
+.translator-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: #e5ebf3;
+}
+
+.translator-box {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: #fff;
+}
+
+.translator-box span {
+  color: #5f6f89;
+  font-size: 14px;
+}
+
+.translator-box textarea {
+  width: 100%;
+  min-height: 240px;
+  resize: vertical;
+  border: 1px solid #cdd6e4;
+  border-radius: 8px;
+  padding: 12px;
+  color: #172033;
+  line-height: 1.5;
+}
+
+.translator-box textarea:focus,
+.select-control:focus {
+  border-color: #1f6feb;
+  outline: 2px solid rgb(31 111 235 / 14%);
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(100% - 20px, 1180px);
@@ -378,15 +450,18 @@ h2 {
   }
 
   .toolbar,
-  .workspace {
+  .workspace,
+  .translator-grid {
     grid-template-columns: 1fr;
   }
 
-  .toolbar {
+  .toolbar,
+  .translator-header {
     display: grid;
   }
 
-  .actions {
+  .actions,
+  .translator-actions {
     justify-content: stretch;
   }
 

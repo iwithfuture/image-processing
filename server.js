@@ -16,6 +16,48 @@ const publicDir = path.join(__dirname, "public");
 
 let isProcessing = false;
 
+const supportedTranslateLanguages = new Set([
+  "en",
+  "de",
+  "es",
+  "fr",
+  "it",
+  "pt",
+  "ru",
+  "ja",
+  "ar",
+  "ko",
+  "tr",
+  "th",
+  "vi",
+  "nl",
+  "id",
+  "he",
+  "hi",
+  "zh-CN",
+]);
+
+const myMemoryLanguageMap = {
+  "zh-CN": "zh-CN",
+  en: "en",
+  de: "de",
+  es: "es",
+  fr: "fr",
+  it: "it",
+  pt: "pt",
+  ru: "ru",
+  ja: "ja",
+  ar: "ar",
+  ko: "ko",
+  tr: "tr",
+  th: "th",
+  vi: "vi",
+  nl: "nl",
+  id: "id",
+  he: "he",
+  hi: "hi",
+};
+
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -30,6 +72,116 @@ function sendJson(response, statusCode, data) {
     "Cache-Control": "no-store",
   });
   response.end(JSON.stringify(data));
+}
+
+function readRequestBody(request) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    request.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 50000) {
+        request.destroy();
+        reject(new Error("Text is too long."));
+      }
+    });
+
+    request.on("end", () => resolve(body));
+    request.on("error", reject);
+  });
+}
+
+async function translateText(text, targetLanguage) {
+  try {
+    return await translateWithGoogle(text, targetLanguage);
+  } catch {
+    return translateWithMyMemory(text, targetLanguage);
+  }
+}
+
+async function translateWithGoogle(text, targetLanguage) {
+  const apiUrl = new URL("https://translate.googleapis.com/translate_a/single");
+  apiUrl.searchParams.set("client", "gtx");
+  apiUrl.searchParams.set("sl", "auto");
+  apiUrl.searchParams.set("tl", targetLanguage);
+  apiUrl.searchParams.set("dt", "t");
+  apiUrl.searchParams.set("q", text);
+
+  const translationResponse = await fetch(apiUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+    },
+  });
+
+  if (!translationResponse.ok) {
+    throw new Error("Translation service is unavailable.");
+  }
+
+  const data = await translationResponse.json();
+  const translatedText = Array.isArray(data?.[0])
+    ? data[0].map((part) => part?.[0] || "").join("")
+    : "";
+
+  return {
+    detectedLanguage: data?.[2] || "auto",
+    translatedText,
+  };
+}
+
+function detectLikelyLanguage(text) {
+  if (/[\u4e00-\u9fff]/.test(text)) return "zh-CN";
+  if (/[\u3040-\u30ff]/.test(text)) return "ja";
+  if (/[\uac00-\ud7af]/.test(text)) return "ko";
+  if (/[\u0600-\u06ff]/.test(text)) return "ar";
+  if (/[\u0400-\u04ff]/.test(text)) return "ru";
+  if (/[\u0590-\u05ff]/.test(text)) return "he";
+  if (/[\u0900-\u097f]/.test(text)) return "hi";
+  if (/[\u0e00-\u0e7f]/.test(text)) return "th";
+  if (/[ăâđêôơưĂÂĐÊÔƠƯ]/.test(text)) return "vi";
+  if (/[ñáéíóúü¿¡]/i.test(text)) return "es";
+  if (/[àâçéèêëîïôùûüÿæœ]/i.test(text)) return "fr";
+  if (/[äöüß]/i.test(text)) return "de";
+  if (/[ğışİöçü]/i.test(text)) return "tr";
+  return "en";
+}
+
+async function translateWithMyMemory(text, targetLanguage) {
+  const sourceLanguage = detectLikelyLanguage(text);
+
+  if (sourceLanguage === targetLanguage) {
+    return {
+      detectedLanguage: sourceLanguage,
+      translatedText: text,
+    };
+  }
+
+  const source = myMemoryLanguageMap[sourceLanguage] || "en";
+  const target = myMemoryLanguageMap[targetLanguage] || targetLanguage;
+  const apiUrl = new URL("https://api.mymemory.translated.net/get");
+  apiUrl.searchParams.set("q", text);
+  apiUrl.searchParams.set("langpair", `${source}|${target}`);
+
+  const translationResponse = await fetch(apiUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+    },
+  });
+
+  if (!translationResponse.ok) {
+    throw new Error("Translation service is unavailable.");
+  }
+
+  const data = await translationResponse.json();
+  const translatedText = data?.responseData?.translatedText;
+
+  if (!translatedText || data?.responseStatus >= 400) {
+    throw new Error(data?.responseDetails || "Translation failed.");
+  }
+
+  return {
+    detectedLanguage: sourceLanguage,
+    translatedText,
+  };
 }
 
 function openBrowser(url) {
@@ -134,6 +286,31 @@ async function handleApi(request, response) {
     }
 
     sendJson(response, 400, { message: "Unknown folder target." });
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/translate") {
+    try {
+      const body = await readRequestBody(request);
+      const payload = JSON.parse(body || "{}");
+      const text = String(payload.text || "").trim();
+      const targetLanguage = String(payload.targetLanguage || "");
+
+      if (!text) {
+        sendJson(response, 400, { message: "Please enter text to translate." });
+        return;
+      }
+
+      if (!supportedTranslateLanguages.has(targetLanguage)) {
+        sendJson(response, 400, { message: "Unsupported target language." });
+        return;
+      }
+
+      const result = await translateText(text, targetLanguage);
+      sendJson(response, 200, result);
+    } catch (error) {
+      sendJson(response, 500, { message: error.message });
+    }
     return;
   }
 
