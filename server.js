@@ -16,26 +16,30 @@ const publicDir = path.join(__dirname, "public");
 
 let isProcessing = false;
 
-const supportedTranslateLanguages = new Set([
-  "en",
-  "de",
-  "es",
-  "fr",
-  "it",
-  "pt",
-  "ru",
-  "ja",
-  "ar",
-  "ko",
-  "tr",
-  "th",
-  "vi",
-  "nl",
-  "id",
-  "he",
-  "hi",
-  "zh-CN",
-]);
+const translateLanguages = [
+  { code: "en", label: "英语" },
+  { code: "de", label: "德语" },
+  { code: "es", label: "西班牙语" },
+  { code: "fr", label: "法语" },
+  { code: "it", label: "意大利语" },
+  { code: "pt", label: "葡萄牙语" },
+  { code: "ru", label: "俄语" },
+  { code: "ja", label: "日语" },
+  { code: "ar", label: "阿拉伯语" },
+  { code: "ko", label: "韩语" },
+  { code: "tr", label: "土耳其语" },
+  { code: "th", label: "泰语" },
+  { code: "vi", label: "越南语" },
+  { code: "nl", label: "荷兰语" },
+  { code: "id", label: "印度尼西亚语" },
+  { code: "he", label: "希伯来语" },
+  { code: "hi", label: "印地语" },
+  { code: "zh-CN", label: "中文" },
+];
+
+const supportedTranslateLanguages = new Set(
+  translateLanguages.map((language) => language.code),
+);
 
 const myMemoryLanguageMap = {
   "zh-CN": "zh-CN",
@@ -111,6 +115,7 @@ async function translateWithGoogle(text, targetLanguage) {
     headers: {
       "User-Agent": "Mozilla/5.0",
     },
+    signal: AbortSignal.timeout(3500),
   });
 
   if (!translationResponse.ok) {
@@ -126,6 +131,33 @@ async function translateWithGoogle(text, targetLanguage) {
     detectedLanguage: data?.[2] || "auto",
     translatedText,
   };
+}
+
+async function translateAllLanguages(text) {
+  const translations = await Promise.all(
+    translateLanguages.map(async (language) => {
+      try {
+        const result = await translateText(text, language.code);
+        return {
+          code: language.code,
+          label: language.label,
+          translatedText: result.translatedText,
+          detectedLanguage: result.detectedLanguage,
+          status: "success",
+        };
+      } catch (error) {
+        return {
+          code: language.code,
+          label: language.label,
+          translatedText: "",
+          error: error.message,
+          status: "failed",
+        };
+      }
+    }),
+  );
+
+  return translations;
 }
 
 function detectLikelyLanguage(text) {
@@ -308,6 +340,25 @@ async function handleApi(request, response) {
 
       const result = await translateText(text, targetLanguage);
       sendJson(response, 200, result);
+    } catch (error) {
+      sendJson(response, 500, { message: error.message });
+    }
+    return;
+  }
+
+  if (request.method === "POST" && requestUrl.pathname === "/api/translate-all") {
+    try {
+      const body = await readRequestBody(request);
+      const payload = JSON.parse(body || "{}");
+      const text = String(payload.text || "").trim();
+
+      if (!text) {
+        sendJson(response, 400, { message: "Please enter text to translate." });
+        return;
+      }
+
+      const translations = await translateAllLanguages(text);
+      sendJson(response, 200, { translations });
     } catch (error) {
       sendJson(response, 500, { message: error.message });
     }

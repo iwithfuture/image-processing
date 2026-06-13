@@ -426,10 +426,10 @@ h2 {
   font-size: 14px;
 }
 
-.translator-box textarea {
+.translator-box textarea,
+.translation-results {
   width: 100%;
   min-height: 240px;
-  resize: vertical;
   border: 1px solid #cdd6e4;
   border-radius: 8px;
   padding: 12px;
@@ -437,8 +437,54 @@ h2 {
   line-height: 1.5;
 }
 
+.translator-box textarea {
+  resize: vertical;
+}
+
+.translation-results {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  max-height: 520px;
+  overflow: auto;
+  background: #fbfcfe;
+}
+
+.translation-item {
+  display: grid;
+  gap: 6px;
+  border-bottom: 1px solid #e8eef6;
+  padding-bottom: 10px;
+}
+
+.translation-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.translation-item h3 {
+  margin: 0;
+  color: #1f6feb;
+  font-size: 14px;
+}
+
+.translation-item p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.translation-empty {
+  display: grid;
+  place-items: center;
+  min-height: 210px;
+  color: #69788f;
+  text-align: center;
+}
+
 .translator-box textarea:focus,
-.select-control:focus {
+.select-control:focus,
+.translation-results:focus {
   border-color: #1f6feb;
   outline: 2px solid rgb(31 111 235 / 14%);
 }

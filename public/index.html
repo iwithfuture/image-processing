@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>批量图片处理工具</title>
+    <title>批量图片处理与翻译工具</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -119,27 +119,7 @@
             <h2>多语言翻译工具</h2>
           </div>
           <div class="translator-actions">
-            <select id="targetLanguageSelect" class="select-control" aria-label="目标语言">
-              <option value="en">英语</option>
-              <option value="de">德语</option>
-              <option value="es">西班牙语</option>
-              <option value="fr">法语</option>
-              <option value="it">意大利语</option>
-              <option value="pt">葡萄牙语</option>
-              <option value="ru">俄语</option>
-              <option value="ja">日语</option>
-              <option value="ar">阿拉伯语</option>
-              <option value="ko">韩语</option>
-              <option value="tr">土耳其语</option>
-              <option value="th">泰语</option>
-              <option value="vi">越南语</option>
-              <option value="nl">荷兰语</option>
-              <option value="id">印度尼西亚语</option>
-              <option value="he">希伯来语</option>
-              <option value="hi">印地语</option>
-              <option value="zh-CN">中文</option>
-            </select>
-            <button id="translateButton" class="button primary" type="button">翻译</button>
+            <button id="translateButton" class="button primary" type="button">翻译全部语言</button>
           </div>
         </div>
 
@@ -148,10 +128,12 @@
             <span>输入任意语言</span>
             <textarea id="sourceTextInput" placeholder="在这里输入要翻译的内容"></textarea>
           </label>
-          <label class="translator-box">
+          <div class="translator-box">
             <span id="translationStatus">翻译结果</span>
-            <textarea id="translatedTextOutput" readonly placeholder="翻译结果会显示在这里"></textarea>
-          </label>
+            <div id="translatedTextOutput" class="translation-results">
+              <div class="translation-empty">翻译结果会显示在这里</div>
+            </div>
+          </div>
         </div>
       </section>
     </main>

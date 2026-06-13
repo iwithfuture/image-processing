@@ -35,7 +35,6 @@ const sizeModeInputs = document.querySelectorAll('input[name="sizeMode"]');
 const removeBackgroundInput = document.querySelector("#removeBackgroundInput");
 const sourceTextInput = document.querySelector("#sourceTextInput");
 const translatedTextOutput = document.querySelector("#translatedTextOutput");
-const targetLanguageSelect = document.querySelector("#targetLanguageSelect");
 const translateButton = document.querySelector("#translateButton");
 const translationStatus = document.querySelector("#translationStatus");
 
@@ -481,23 +480,22 @@ async function translateText() {
 
   if (!text) {
     translationStatus.textContent = "请先输入文字";
-    translatedTextOutput.value = "";
+    translatedTextOutput.innerHTML = '<div class="translation-empty">翻译结果会显示在这里</div>';
     return;
   }
 
   translateButton.disabled = true;
-  translationStatus.textContent = "正在翻译...";
-  translatedTextOutput.value = "";
+  translationStatus.textContent = "正在翻译全部语言...";
+  translatedTextOutput.innerHTML = '<div class="translation-empty">正在翻译，请稍等</div>';
 
   try {
-    const response = await fetch("/api/translate", {
+    const response = await fetch("/api/translate-all", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         text,
-        targetLanguage: targetLanguageSelect.value,
       }),
     });
     const data = await response.json();
@@ -506,13 +504,44 @@ async function translateText() {
       throw new Error(data.message || "翻译失败");
     }
 
-    translatedTextOutput.value = data.translatedText;
-    translationStatus.textContent = `翻译结果`;
+    renderTranslations(data.translations || []);
+    translationStatus.textContent = `翻译结果：${(data.translations || []).length} 种语言`;
   } catch (error) {
     translationStatus.textContent = error.message;
+    translatedTextOutput.innerHTML = '<div class="translation-empty">翻译失败，请稍后重试</div>';
   } finally {
     translateButton.disabled = false;
   }
+}
+
+function renderTranslations(translations) {
+  translatedTextOutput.innerHTML = "";
+
+  if (translations.length === 0) {
+    translatedTextOutput.innerHTML = '<div class="translation-empty">没有翻译结果</div>';
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  for (const translation of translations) {
+    const item = document.createElement("article");
+    item.className = "translation-item";
+
+    const title = document.createElement("h3");
+    title.textContent = translation.label;
+
+    const content = document.createElement("p");
+    content.textContent =
+      translation.status === "success"
+        ? translation.translatedText
+        : translation.error || "翻译失败";
+
+    item.append(title, content);
+    fragment.append(item);
+  }
+
+  translatedTextOutput.append(fragment);
 }
 
 translateButton.addEventListener("click", translateText);
