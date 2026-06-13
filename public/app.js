@@ -528,8 +528,16 @@ function renderTranslations(translations) {
     const item = document.createElement("article");
     item.className = "translation-item";
 
+    const header = document.createElement("div");
+    header.className = "translation-item-header";
+
     const title = document.createElement("h3");
     title.textContent = translation.label;
+
+    const copyButton = document.createElement("button");
+    copyButton.className = "copy-translation-button";
+    copyButton.type = "button";
+    copyButton.textContent = "复制";
 
     const content = document.createElement("p");
     content.textContent =
@@ -537,11 +545,32 @@ function renderTranslations(translations) {
         ? translation.translatedText
         : translation.error || "翻译失败";
 
-    item.append(title, content);
+    copyButton.disabled = translation.status !== "success" || !translation.translatedText;
+    copyButton.addEventListener("click", () => {
+      copyTranslation(translation.translatedText, copyButton);
+    });
+
+    header.append(title, copyButton);
+    item.append(header, content);
     fragment.append(item);
   }
 
   translatedTextOutput.append(fragment);
+}
+
+async function copyTranslation(text, button) {
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = "已复制";
+    window.setTimeout(() => {
+      button.textContent = "复制";
+    }, 1200);
+  } catch {
+    button.textContent = "复制失败";
+    window.setTimeout(() => {
+      button.textContent = "复制";
+    }, 1200);
+  }
 }
 
 translateButton.addEventListener("click", translateText);

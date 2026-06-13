@@ -462,10 +462,38 @@ h2 {
   padding-bottom: 0;
 }
 
+.translation-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .translation-item h3 {
   margin: 0;
   color: #1f6feb;
   font-size: 14px;
+}
+
+.copy-translation-button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  border: 1px solid #cdd6e4;
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: #30415c;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.copy-translation-button:hover {
+  border-color: #7b8da8;
+}
+
+.copy-translation-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .translation-item p {
